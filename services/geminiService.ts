@@ -14,7 +14,76 @@ const IMAGE_MODEL_NAME = 'imagen-3.0-generate-002';
 const TEXT_MODEL_NAME = 'gemini-2.5-flash-preview-04-17';
 const TTS_MODEL_NAME = 'gemini-2.5-flash-preview-tts';
 
-// Voice options with their characteristics
+export const generateImage = async (prompt: string): Promise<string> => {
+  if (!genAI) {
+    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({ model: IMAGE_MODEL_NAME });
+    const result = await model.generateImages({ prompt });
+
+    if (!result.images?.[0]) {
+      throw new Error("No image was generated");
+    }
+
+    const imageData = result.images[0];
+    return URL.createObjectURL(new Blob([imageData.data], { type: imageData.mimeType }));
+  } catch (error) {
+    console.error('Error generating image:', error);
+    if (error instanceof Error) {
+      throw new Error(`Gemini API error: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while generating the image.');
+  }
+};
+
+export const generateContent = async (prompt: string): Promise<string> => {
+  if (!genAI) {
+    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({ model: TEXT_MODEL_NAME });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Error generating content:', error);
+    if (error instanceof Error) {
+      throw new Error(`Gemini API error: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while generating the content.');
+  }
+};
+
+export const generateVoice = async (text: string): Promise<ArrayBuffer> => {
+  if (!genAI) {
+    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({ model: TTS_MODEL_NAME });
+    const result = await model.generateSpeech(text, {
+      voice: 'alloy',
+      languageCode: 'en-US'
+    });
+
+    if (!result?.audioContent) {
+      throw new Error("No audio data was generated");
+    }
+
+    return result.audioContent;
+  } catch (error) {
+    console.error('Error generating speech:', error);
+    if (error instanceof Error) {
+      throw new Error(`Speech generation error: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while generating speech.');
+  }
+};
+
+// Export these for backwards compatibility
 export const voiceOptions = [
   { value: 'alloy', label: 'Alloy', characteristic: 'Neutral' },
   { value: 'echo', label: 'Echo', characteristic: 'Balanced' },
@@ -24,7 +93,6 @@ export const voiceOptions = [
   { value: 'shimmer', label: 'Shimmer', characteristic: 'Clear' }
 ];
 
-// Supported languages with their BCP-47 codes
 export const supportedLanguages = [
   { code: 'en-US', name: 'English (US)' },
   { code: 'es-ES', name: 'Spanish (Spain)' },
@@ -58,97 +126,20 @@ export const imageStyles = [
   { value: "Steampunk", label: "Steampunk" }
 ];
 
-interface GeneratedMediaData {
-  url: string;
-  mimeType: string;
-}
-
-export const generateImageFromPrompt = async (
-  prompt: string,
-  optimize: boolean = false,
-  style: string = ""
-): Promise<GeneratedMediaData[] | null> => {
-  if (!genAI) {
-    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
-  }
-
-  let finalPrompt = prompt.trim();
-  if (style) {
-    finalPrompt = `${finalPrompt}, in a ${style} style`;
-  }
-
-  console.log(`Generating image with prompt: "${finalPrompt}"`);
-
-  try {
-    const model = genAI.getGenerativeModel({ model: IMAGE_MODEL_NAME });
-    const result = await model.generateImages({ prompt: finalPrompt });
-
-    if (result && result.images) {
-      return result.images.map(img => ({
-        url: URL.createObjectURL(new Blob([img.data], { type: img.mimeType })),
-        mimeType: img.mimeType
-      }));
-    }
-    return null;
-  } catch (error) {
-    console.error('Error generating image:', error);
-    if (error instanceof Error) {
-      throw new Error(`Gemini API error: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred while generating the image.');
-  }
-};
-
-export const generateStructuredContent = async (
-  userInput: string,
-  contentType: string
-): Promise<string> => {
-  if (!genAI) {
-    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
-  }
-
-  try {
-    const model = genAI.getGenerativeModel({ model: TEXT_MODEL_NAME });
-    const result = await model.generateContent(userInput);
-    const response = await result.response;
-    return response.text();
-  } catch (error) {
-    console.error('Error generating content:', error);
-    if (error instanceof Error) {
-      throw new Error(`Gemini API error: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred while generating the content.');
-  }
-};
-
+// Keep these for backwards compatibility
+export const generateImageFromPrompt = generateImage;
+export const generateStructuredContent = generateContent;
 export const generateSpeech = async (
   text: string,
   voiceName: string = 'alloy',
   languageCode: string = 'en-US'
 ): Promise<string | null> => {
-  if (!genAI) {
-    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
-  }
-
   try {
-    const model = genAI.getGenerativeModel({ model: TTS_MODEL_NAME });
-    const result = await model.generateSpeech(text, {
-      voice: voiceName,
-      languageCode
-    });
-
-    if (!result || !result.audioContent) {
-      throw new Error("No audio data generated");
-    }
-
-    const audioBlob = new Blob([result.audioContent], { type: 'audio/wav' });
+    const audioBuffer = await generateVoice(text);
+    const audioBlob = new Blob([audioBuffer], { type: 'audio/wav' });
     return URL.createObjectURL(audioBlob);
-
   } catch (error) {
-    console.error('Error generating speech:', error);
-    if (error instanceof Error) {
-      throw new Error(`Speech generation error: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred while generating speech.');
+    console.error('Error in generateSpeech wrapper:', error);
+    return null;
   }
 };
