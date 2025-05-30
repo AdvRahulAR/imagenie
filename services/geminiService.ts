@@ -358,8 +358,8 @@ export const generateSpeech = async (
   }
 
   try {
-    const result = await genAI.generateSpeech({
-      model: TTS_MODEL_NAME,
+    const model = genAI.getGenerativeModel({ model: TTS_MODEL_NAME });
+    const result = await model.generateSpeech({
       text,
       voiceConfig: {
         prebuiltVoiceConfig: {
