@@ -161,6 +161,5 @@ export const generateSpeech = async (
       throw new Error(`Speech generation error: ${error.message}`);
     }
     throw new Error('An unknown error occurred while generating speech.');
-    return null;
   }
 };
