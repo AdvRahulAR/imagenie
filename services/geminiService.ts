@@ -1,11 +1,11 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-let ai: GoogleGenAI | null = null;
+let ai: GoogleGenerativeAI | null = null;
 
 if (API_KEY) {
-  ai = new GoogleGenAI({ apiKey: API_KEY });
+  ai = new GoogleGenerativeAI(API_KEY);
 } else {
   console.warn("API_KEY environment variable not found. Gemini API calls will fail.");
 }
@@ -78,7 +78,7 @@ export const generateImageFromPrompt = async (
   }
 
   try {
-    const model = ai.getModel(IMAGE_MODEL_NAME);
+    const model = ai.getGenerativeModel({ model: IMAGE_MODEL_NAME });
     const result = await model.generateImages({
       prompt: finalPrompt,
       n: 4,
@@ -111,7 +111,7 @@ export const generateStructuredContent = async (
   }
 
   try {
-    const model = ai.getModel(TEXT_MODEL_NAME);
+    const model = ai.getGenerativeModel({ model: TEXT_MODEL_NAME });
     const result = await model.generateText({
       text: userInput,
       generationConfig: {
@@ -146,7 +146,7 @@ export const generateSpeech = async (
   }
 
   try {
-    const model = ai.getModel(TTS_MODEL_NAME);
+    const model = ai.getGenerativeModel({ model: TTS_MODEL_NAME });
     const result = await model.generateSpeech({
       text,
       voice: voiceName,
