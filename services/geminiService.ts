@@ -28,55 +28,21 @@ export const voiceOptions = [
   { value: 'Orus', label: 'Orus', characteristic: 'Firm' },
   { value: 'Aoede', label: 'Aoede', characteristic: 'Breezy' },
   { value: 'Callirrhoe', label: 'Callirrhoe', characteristic: 'Easy-going' },
-  { value: 'Autonoe', label: 'Autonoe', characteristic: 'Bright' },
-  { value: 'Enceladus', label: 'Enceladus', characteristic: 'Breathy' },
-  { value: 'Iapetus', label: 'Iapetus', characteristic: 'Clear' },
-  { value: 'Umbriel', label: 'Umbriel', characteristic: 'Easy-going' },
-  { value: 'Algieba', label: 'Algieba', characteristic: 'Smooth' },
-  { value: 'Despina', label: 'Despina', characteristic: 'Smooth' },
-  { value: 'Erinome', label: 'Erinome', characteristic: 'Clear' },
-  { value: 'Algenib', label: 'Algenib', characteristic: 'Gravelly' },
-  { value: 'Rasalgethi', label: 'Rasalgethi', characteristic: 'Informative' },
-  { value: 'Laomedeia', label: 'Laomedeia', characteristic: 'Upbeat' },
-  { value: 'Achernar', label: 'Achernar', characteristic: 'Soft' },
-  { value: 'Alnilam', label: 'Alnilam', characteristic: 'Firm' },
-  { value: 'Schedar', label: 'Schedar', characteristic: 'Even' },
-  { value: 'Gacrux', label: 'Gacrux', characteristic: 'Mature' },
-  { value: 'Pulcherrima', label: 'Pulcherrima', characteristic: 'Forward' },
-  { value: 'Achird', label: 'Achird', characteristic: 'Friendly' },
-  { value: 'Zubenelgenubi', label: 'Zubenelgenubi', characteristic: 'Casual' },
-  { value: 'Vindemiatrix', label: 'Vindemiatrix', characteristic: 'Gentle' },
-  { value: 'Sadachbia', label: 'Sadachbia', characteristic: 'Lively' },
-  { value: 'Sadaltager', label: 'Sadaltager', characteristic: 'Knowledgeable' },
-  { value: 'Sulafat', label: 'Sulafat', characteristic: 'Warm' }
+  { value: 'Autonoe', label: 'Autonoe', characteristic: 'Bright' }
 ];
 
 // Supported languages with their BCP-47 codes
 export const supportedLanguages = [
-  { code: 'ar-EG', name: 'Arabic (Egyptian)' },
-  { code: 'de-DE', name: 'German (Germany)' },
   { code: 'en-US', name: 'English (US)' },
-  { code: 'es-US', name: 'Spanish (US)' },
+  { code: 'es-ES', name: 'Spanish (Spain)' },
   { code: 'fr-FR', name: 'French (France)' },
-  { code: 'hi-IN', name: 'Hindi (India)' },
-  { code: 'id-ID', name: 'Indonesian (Indonesia)' },
+  { code: 'de-DE', name: 'German (Germany)' },
   { code: 'it-IT', name: 'Italian (Italy)' },
   { code: 'ja-JP', name: 'Japanese (Japan)' },
   { code: 'ko-KR', name: 'Korean (Korea)' },
   { code: 'pt-BR', name: 'Portuguese (Brazil)' },
-  { code: 'ru-RU', name: 'Russian (Russia)' },
-  { code: 'nl-NL', name: 'Dutch (Netherlands)' },
-  { code: 'pl-PL', name: 'Polish (Poland)' },
-  { code: 'th-TH', name: 'Thai (Thailand)' },
-  { code: 'tr-TR', name: 'Turkish (Turkey)' },
-  { code: 'vi-VN', name: 'Vietnamese (Vietnam)' },
-  { code: 'ro-RO', name: 'Romanian (Romania)' },
-  { code: 'uk-UA', name: 'Ukrainian (Ukraine)' },
-  { code: 'bn-BD', name: 'Bengali (Bangladesh)' },
-  { code: 'en-IN', name: 'English (India)' },
-  { code: 'mr-IN', name: 'Marathi (India)' },
-  { code: 'ta-IN', name: 'Tamil (India)' },
-  { code: 'te-IN', name: 'Telugu (India)' }
+  { code: 'hi-IN', name: 'Hindi (India)' },
+  { code: 'zh-CN', name: 'Chinese (Simplified)' }
 ];
 
 export const imageStyles = [
