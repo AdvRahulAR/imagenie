@@ -1,11 +1,11 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-let genAI: GoogleGenerativeAI | null = null;
+let ai: GoogleGenAI | null = null;
 
 if (API_KEY) {
-  genAI = new GoogleGenerativeAI(API_KEY);
+  ai = new GoogleGenAI({ apiKey: API_KEY });
 } else {
   console.warn("API_KEY environment variable not found. Gemini API calls will fail.");
 }
@@ -68,7 +68,7 @@ export const generateImageFromPrompt = async (
   optimize: boolean = false,
   style: string = ""
 ): Promise<GeneratedMediaData[] | null> => {
-  if (!genAI) {
+  if (!ai) {
     throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
   }
 
@@ -78,11 +78,11 @@ export const generateImageFromPrompt = async (
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: IMAGE_MODEL_NAME });
+    const model = ai.getModel(IMAGE_MODEL_NAME);
     const result = await model.generateImages({
       prompt: finalPrompt,
       n: 4,
-      size: { width: 1024, height: 1024 }
+      dimensions: { width: 1024, height: 1024 }
     });
 
     if (!result.images || result.images.length === 0) {
@@ -106,14 +106,14 @@ export const generateStructuredContent = async (
   userInput: string,
   contentType: string
 ): Promise<string> => {
-  if (!genAI) {
+  if (!ai) {
     throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: TEXT_MODEL_NAME });
-    const result = await model.generateContent({
-      contents: [{ text: userInput }],
+    const model = ai.getModel(TEXT_MODEL_NAME);
+    const result = await model.generateText({
+      text: userInput,
       generationConfig: {
         temperature: 0.7,
         topK: 40,
@@ -122,8 +122,11 @@ export const generateStructuredContent = async (
       }
     });
 
-    const response = await result.response;
-    return response.text();
+    if (!result.text) {
+      throw new Error("No content was generated");
+    }
+
+    return result.text;
   } catch (error) {
     console.error('Error generating content:', error);
     if (error instanceof Error) {
@@ -138,15 +141,16 @@ export const generateSpeech = async (
   voiceName: string = 'alloy',
   languageCode: string = 'en-US'
 ): Promise<string | null> => {
-  if (!genAI) {
+  if (!ai) {
     throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: TTS_MODEL_NAME });
-    const result = await model.generateSpeech(text, {
+    const model = ai.getModel(TTS_MODEL_NAME);
+    const result = await model.generateSpeech({
+      text,
       voice: voiceName,
-      languageCode: languageCode
+      languageCode
     });
 
     if (!result?.audioContent) {
