@@ -1,10 +1,13 @@
+import { GoogleGenAI, GenerateImagesResponse, GenerateContentResponse } from "@google/genai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = process.env.API_KEY;
 
+let ai: GoogleGenAI | null = null;
 let genAI: GoogleGenerativeAI | null = null;
 
 if (API_KEY) {
+  ai = new GoogleGenAI({ apiKey: API_KEY });
   genAI = new GoogleGenerativeAI(API_KEY);
 } else {
   console.warn("API_KEY environment variable not found. Gemini API calls will fail.");
@@ -70,7 +73,7 @@ interface GenerateImageRequest {
 }
 
 const optimizeUserPrompt = async (userPrompt: string, style: string = ""): Promise<string> => {
-  if (!genAI) {
+  if (!ai) {
     console.warn("Gemini API client not initialized. Cannot optimize prompt.");
     return style ? `${userPrompt}, in a ${style} style` : userPrompt;
   }
@@ -101,20 +104,15 @@ Return only the rewritten prompt, without any preamble, explanation, or conversa
 
   try {
     console.log(`Optimizing prompt: "${userPrompt}" with style: "${style || 'None'}"`);
-    const model = genAI.getGenerativeModel({ model: TEXT_MODEL_NAME });
-    
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 1024,
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: TEXT_MODEL_NAME,
+      contents: userPrompt,
+      config: {
+        systemInstruction: systemInstruction,
       }
     });
 
-    const response = await result.response;
-    let optimizedPromptText = response.text().trim();
+    let optimizedPromptText = response.text.trim();
     
     const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
     const match = optimizedPromptText.match(fenceRegex);
@@ -140,7 +138,7 @@ export const generateImageFromPrompt = async (
   optimize: boolean = false,
   style: string = ""
 ): Promise<GeneratedMediaData[] | null> => {
-  if (!genAI) {
+  if (!ai) {
     throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
   }
 
@@ -154,42 +152,117 @@ export const generateImageFromPrompt = async (
 
   console.log(`Generating 4 images with prompt: "${finalPrompt}"`);
 
-  try {
-    const model = genAI.getGenerativeModel({ model: IMAGE_MODEL_NAME });
-    
-    const result = await model.generateImages({
-      prompt: finalPrompt,
-      n: 4,
-      responseFormat: { type: 'jpeg' }
-    });
+  const generationRequest: GenerateImageRequest = {
+    model: IMAGE_MODEL_NAME,
+    prompt: finalPrompt,
+    config: { numberOfImages: 4, outputMimeType: 'image/jpeg' },
+  };
 
-    if (result.images && result.images.length > 0) {
-      const imagesData: GeneratedMediaData[] = result.images.map(img => ({
-        url: URL.createObjectURL(new Blob([img.data], { type: 'image/jpeg' })),
-        mimeType: 'image/jpeg'
-      }));
+  try {
+    const response: GenerateImagesResponse = await ai.models.generateImages(generationRequest);
+
+    if (response.generatedImages && response.generatedImages.length > 0) {
+      const imagesData: GeneratedMediaData[] = [];
+      for (const imageInfo of response.generatedImages) {
+        if (imageInfo.image && imageInfo.image.imageBytes) {
+          const base64ImageBytes: string = imageInfo.image.imageBytes;
+          const mimeType = imageInfo.image.mimeType || 'image/jpeg';
+          const imageUrl = `data:${mimeType};base64,${base64ImageBytes}`;
+          imagesData.push({ url: imageUrl, mimeType: mimeType });
+        }
+      }
       return imagesData.length > 0 ? imagesData : null;
     }
-    
-    console.error("No image data found in API response:", result);
+    console.error("No image data found in API response:", response);
     return null;
   } catch (error) {
     console.error('Error generating image with Gemini API:', error);
     if (error instanceof Error) {
-      if (error.message.includes("UNIMPLEMENTED") || error.message.includes("INVALID_ARGUMENT")) {
-        throw new Error(`Gemini API error: ${error.message}. The model may not support the requested configuration or prompt content.`);
-      }
-      throw new Error(`Gemini API error: ${error.message}`);
+        if (error.message.includes("UNIMPLEMENTED") || error.message.includes("INVALID_ARGUMENT")) {
+             throw new Error(`Gemini API error: ${error.message}. The model may not support the requested configuration or prompt content.`);
+        }
+        throw new Error(`Gemini API error: ${error.message}`);
     }
     throw new Error('An unknown error occurred while generating the image.');
   }
 };
 
+const CONTENT_CREATOR_SYSTEM_PROMPT = `AI Content Creator Assistant for Carousal Posts & LinkedIn Articles
+
+Primary Function:
+Generate engaging, platform-optimized content packages for Instagram Carousels, LinkedIn Carousels, and LinkedIn Articles based on user-provided content (via links or direct text). The content may include legal case judgments, business insights, or industry news. You will use Google Search to find relevant and up-to-date information to fulfill the request.
+
+Core Output Structure:
+(This section describes all possible output formats. You will ONLY generate the format specified in "Requested Content Type" from the user's message.)
+
+1. Content Title & Source
+   - Official title or headline (case name, article title, or topic)
+   - Source/citation (if applicable, include URLs from search if used)
+   - Year or date of publication/event
+   - Relevant organization, court, or jurisdiction (if legal)
+
+2. Social Media Content Package
+
+   IF "Instagram Carousel Post" OR "LinkedIn Post/Carousel" is requested:
+   - Instagram/LinkedIn Carousel
+     - Main Post
+       - Headline (max 50 characters, catchy and platform-appropriate)
+       - Brief description (max 150 words, summarizing the core message)
+       - Primary image prompt description (for AI image generation)
+     - Slide Content (For Carousel format)
+       - Slide 1: Key Takeaways (max 300 characters, bullet points)
+       - Slide 2: Context & Impact (max 300 characters, bullet points)
+       - Slide 3: Practical Implications (max 300 characters, bullet points)
+       (If LinkedIn Post is not a carousel, adapt the "Main Post" structure for a single, impactful post. Image prompt description is still valuable.)
+
+   IF "LinkedIn Article" is requested:
+   - LinkedIn Article
+     - Structured summary with clear headings and bullet points
+     - Expanded analysis (400–600 words) focusing on insights, implications, and actionable points
+     - Statutory references or data points (if applicable)
+     - Practical recommendations for professionals
+
+3. Technical Elements (Applicable to the CHOSEN format)
+   - Relevant viral hashtags for each platform (e.g., #lawyers #lawschool #judge #advocate #legalright #legalawareness for legal topics; adapt for other domains)
+   - Image specifications (1080x1080px, optimized for social media, especially for Carousels)
+   - Content categorization tags (e.g., Law, Business, Tech, Case Study)
+   - Music suggestion for Instagram post (genre or track style matching the content tone, ONLY if Instagram Carousel is requested)
+   - Citation format appropriate for the content type and platform (ensure URLs from search are cited if used)
+
+Content Guidelines:
+- Use clear, accessible language; maintain accuracy and credibility.
+- Focus on practical implications and real-world impact.
+- Avoid jargon unless essential; explain terms when used.
+- Highlight key insights, precedential value (for legal), or actionable takeaways.
+- Maintain a neutral, professional tone.
+- Include statutory or data references where applicable, citing sources.
+- Structure responses with clear headings and bullet points.
+- Use bold for important terms or holdings.
+- Apply markdown formatting for emphasis and readability (e.g., **bold**, *italics*, # Heading, - List item).
+- Ensure consistent citation style throughout.
+
+Additional Requirements (Applicable to the CHOSEN format):
+- Add a short, concise summary (2–3 sentences) at the end for voiceover or audio generation.
+- Suggest music suitable for Instagram posts based on the content's mood and theme (ONLY if Instagram Carousel is requested).
+
+Input Context:
+The user will provide text content (e.g., legal judgment, business article, or industry update) or a topic for research, and will specify the desired output format in "Requested Content Type".
+
+Output Task:
+CRITICAL: Your SOLE task is to generate content *ONLY* for the 'Requested Content Type' specified by the user. Under NO circumstances should you produce outputs for any other formats described in the 'Core Output Structure' section. That section is a general reference for all your capabilities, but for THIS request, adhere strictly to the single 'Requested Content Type'.
+
+Based on the user's input text/topic and their "Requested Content Type", use Google Search to gather necessary information.
+Then, generate a ready-to-publish content package *specifically tailored for the CHOSEN platform and format*.
+For example, if "LinkedIn Article" is requested, only provide the LinkedIn Article structure. If "Instagram Carousel Post" is requested, only provide the Instagram Carousel structure.
+If "LinkedIn Post/Carousel" is selected, assume a LinkedIn Carousel format unless the content naturally fits a shorter, single post, but prioritize carousel elements.
+Ensure all technical, creative, and formatting elements relevant to the CHOSEN format are included. Cite any web sources used.
+`;
+
 export const generateStructuredContent = async (
   userInput: string,
-  contentType: string
+  contentType: string // e.g., "linkedinPost", "linkedinArticle", "instagramCarousel"
 ): Promise<string> => {
-  if (!genAI) {
+  if (!ai) {
     throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
   }
 
@@ -207,23 +280,24 @@ export const generateStructuredContent = async (
   console.log(`Generating structured content for type: "${requestedContentTypeDescription}" with Google Search`);
 
   try {
-    const model = genAI.getGenerativeModel({ model: TEXT_MODEL_NAME });
-    
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 2048,
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: TEXT_MODEL_NAME,
+      contents: userMessage,
+      config: {
+        systemInstruction: CONTENT_CREATOR_SYSTEM_PROMPT,
+        tools: [{googleSearch: {}}], // Enable Google Search grounding
       }
     });
+    
+    // Log grounding metadata if available
+    if (response.candidates && response.candidates[0]?.groundingMetadata?.groundingChunks) {
+        console.log("Grounding chunks from Google Search:", response.candidates[0].groundingMetadata.groundingChunks);
+    }
 
-    const response = await result.response;
-    let generatedText = response.text().trim();
+    let generatedText = response.text.trim();
     
     if (!generatedText) {
-      throw new Error("The API returned empty content.");
+        throw new Error("The API returned empty content.");
     }
     return generatedText;
 
@@ -250,15 +324,10 @@ export const generateSpeech = async (
     const model = genAI.getGenerativeModel({ model: TTS_MODEL_NAME });
     
     // Generate speech
-    const result = await model.generateSpeech({
-      text,
+    const result = await model.generateSpeech(text, {
+      model: TTS_MODEL_NAME,
       voice: voiceName,
-      languageCode,
-      audioConfig: {
-        audioEncoding: 'wav',
-        speakingRate: 1.0,
-        pitch: 0.0
-      }
+      languageCode
     });
 
     if (!result || !result.audioContent) {
