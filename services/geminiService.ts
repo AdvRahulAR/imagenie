@@ -10,9 +10,9 @@ if (API_KEY) {
   console.warn("API_KEY environment variable not found. Gemini API calls will fail.");
 }
 
-const IMAGE_MODEL_NAME = 'imagen-3.0-generate-002';
 const TEXT_MODEL_NAME = 'gemini-2.5-flash-preview-04-17';
 const TTS_MODEL_NAME = 'gemini-2.5-flash-preview-tts';
+const IMAGEN_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/imagen-3.0-generate-002:generateImages';
 
 // Voice options with their characteristics
 export const voiceOptions = [
@@ -68,8 +68,8 @@ export const generateImageFromPrompt = async (
   optimize: boolean = false,
   style: string = ""
 ): Promise<GeneratedMediaData[] | null> => {
-  if (!ai) {
-    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
+  if (!API_KEY) {
+    throw new Error("API key is not configured. Is the API_KEY configured?");
   }
 
   let finalPrompt = prompt.trim();
@@ -78,25 +78,44 @@ export const generateImageFromPrompt = async (
   }
 
   try {
-    const model = ai.getGenerativeModel({ model: IMAGE_MODEL_NAME });
-    const result = await model.generateImages({
-      prompt: finalPrompt,
-      n: 4,
-      dimensions: { width: 1024, height: 1024 }
+    const response = await fetch(`${IMAGEN_API_ENDPOINT}?key=${API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: {
+          text: finalPrompt
+        },
+        parameters: {
+          sampleCount: 4,
+          dimension: {
+            width: 1024,
+            height: 1024
+          }
+        }
+      })
     });
 
-    if (!result.images || result.images.length === 0) {
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Failed to generate images');
+    }
+
+    const data = await response.json();
+    
+    if (!data.images || data.images.length === 0) {
       throw new Error("No images were generated");
     }
 
-    return result.images.map(image => ({
-      url: URL.createObjectURL(new Blob([image.data], { type: image.mimeType })),
-      mimeType: image.mimeType
+    return data.images.map((image: { bytes: string }) => ({
+      url: `data:image/png;base64,${image.bytes}`,
+      mimeType: 'image/png'
     }));
   } catch (error) {
     console.error('Error generating images:', error);
     if (error instanceof Error) {
-      throw new Error(`Gemini API error: ${error.message}`);
+      throw new Error(`Image generation error: ${error.message}`);
     }
     throw new Error('An unknown error occurred while generating images.');
   }
