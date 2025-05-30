@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { generateImageFromPrompt, imageStyles, generateStructuredContent } from './services/geminiService';
 import { ImageCard } from './components/ImageCard';
@@ -6,6 +5,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { ApiKeyStatusBanner } from './components/ApiKeyStatusBanner';
 import { FeatureToggleBar, Feature } from './components/FeatureToggleBar';
 import { ContentCreatorAssistant } from './components/ContentCreatorAssistant';
+import { VoiceGenerator } from './components/VoiceGenerator';
 
 interface GeneratedImageData {
   src: string;
@@ -18,7 +18,6 @@ const App: React.FC = () => {
   const [activeFeature, setActiveFeature] = useState<Feature>('imageGenerator');
   const [showApiKeyBanner, setShowApiKeyBanner] = useState<boolean>(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
-
 
   // Image Generator States
   const [prompt, setPrompt] = useState<string>('');
@@ -39,10 +38,10 @@ const App: React.FC = () => {
     const apiKey = (window as any).API_KEY || process.env.API_KEY;
     if (!apiKey) {
       setShowApiKeyBanner(true);
-      setGlobalError("API Key is not configured. Features requiring Gemini API (Image & Content Gen) will not work.");
+      setGlobalError("API Key is not configured. Features requiring Gemini API (Image, Content & Voice Gen) will not work.");
     } else {
-        setShowApiKeyBanner(false);
-        setGlobalError(null);
+      setShowApiKeyBanner(false);
+      setGlobalError(null);
     }
   }, []);
 
@@ -105,9 +104,9 @@ const App: React.FC = () => {
     setActiveFeature(feature);
     // Reset errors and content of other features when switching
     if (feature === 'imageGenerator') {
-        setContentGenerationError(null);
+      setContentGenerationError(null);
     } else if (feature === 'contentCreator') {
-        setImageGenerationError(null);
+      setImageGenerationError(null);
     }
   };
 
@@ -245,6 +244,10 @@ const App: React.FC = () => {
             lastUserInput={contentInput}
             lastSelectedContentType={selectedContentType}
           />
+        )}
+
+        {activeFeature === 'voiceGenerator' && (
+          <VoiceGenerator isApiKeyMissing={showApiKeyBanner} />
         )}
         
         <footer className="text-center mt-12 py-6 text-sm text-slate-500">

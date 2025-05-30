@@ -1,12 +1,14 @@
-
 import { GoogleGenAI, GenerateImagesResponse, GenerateContentResponse } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = process.env.API_KEY;
 
 let ai: GoogleGenAI | null = null;
+let genAI: GoogleGenerativeAI | null = null;
 
 if (API_KEY) {
   ai = new GoogleGenAI({ apiKey: API_KEY });
+  genAI = new GoogleGenerativeAI(API_KEY);
 } else {
   console.warn("API_KEY environment variable not found. Gemini API calls will fail.");
 }
@@ -219,7 +221,7 @@ Content Guidelines:
 
 Additional Requirements (Applicable to the CHOSEN format):
 - Add a short, concise summary (2–3 sentences) at the end for voiceover or audio generation.
-- Suggest music suitable for Instagram posts based on the content’s mood and theme (ONLY if Instagram Carousel is requested).
+- Suggest music suitable for Instagram posts based on the content's mood and theme (ONLY if Instagram Carousel is requested).
 
 Input Context:
 The user will provide text content (e.g., legal judgment, business article, or industry update) or a topic for research, and will specify the desired output format in "Requested Content Type".
@@ -284,5 +286,30 @@ export const generateStructuredContent = async (
       throw new Error(`Gemini API error: ${error.message}`);
     }
     throw new Error('An unknown error occurred while generating the content.');
+  }
+};
+
+export const generateSpeech = async (text: string): Promise<string | null> => {
+  if (!genAI) {
+    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const result = await model.generateSpeech(text);
+    
+    if (!result) {
+      throw new Error("No audio data generated");
+    }
+
+    // Convert the audio data to a URL that can be played
+    const blob = new Blob([result], { type: 'audio/mp3' });
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error('Error generating speech:', error);
+    if (error instanceof Error) {
+      throw new Error(`Speech generation error: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while generating speech.');
   }
 };
