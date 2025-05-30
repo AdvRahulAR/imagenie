@@ -19,16 +19,12 @@ const TTS_MODEL_NAME = 'gemini-2.5-flash-preview-tts';
 
 // Voice options with their characteristics
 export const voiceOptions = [
-  { value: 'Zephyr', label: 'Zephyr', characteristic: 'Bright' },
-  { value: 'Puck', label: 'Puck', characteristic: 'Upbeat' },
-  { value: 'Charon', label: 'Charon', characteristic: 'Informative' },
-  { value: 'Kore', label: 'Kore', characteristic: 'Firm' },
-  { value: 'Fenrir', label: 'Fenrir', characteristic: 'Excitable' },
-  { value: 'Leda', label: 'Leda', characteristic: 'Youthful' },
-  { value: 'Orus', label: 'Orus', characteristic: 'Firm' },
-  { value: 'Aoede', label: 'Aoede', characteristic: 'Breezy' },
-  { value: 'Callirrhoe', label: 'Callirrhoe', characteristic: 'Easy-going' },
-  { value: 'Autonoe', label: 'Autonoe', characteristic: 'Bright' }
+  { value: 'alloy', label: 'Alloy', characteristic: 'Neutral' },
+  { value: 'echo', label: 'Echo', characteristic: 'Balanced' },
+  { value: 'fable', label: 'Fable', characteristic: 'Authoritative' },
+  { value: 'onyx', label: 'Onyx', characteristic: 'Professional' },
+  { value: 'nova', label: 'Nova', characteristic: 'Warm' },
+  { value: 'shimmer', label: 'Shimmer', characteristic: 'Clear' }
 ];
 
 // Supported languages with their BCP-47 codes
@@ -316,7 +312,7 @@ export const generateStructuredContent = async (
 
 export const generateSpeech = async (
   text: string,
-  voiceName: string = 'Kore',
+  voiceName: string = 'alloy',
   languageCode: string = 'en-US'
 ): Promise<string | null> => {
   if (!genAI) {
@@ -325,11 +321,11 @@ export const generateSpeech = async (
 
   try {
     // Get the text-to-speech model
-    const ttsModel = await genAI.getTextToSpeech();
+    const model = genAI.getGenerativeModel({ model: TTS_MODEL_NAME });
     
     // Generate speech
-    const result = await ttsModel.generateSpeech({
-      text,
+    const result = await model.generateSpeech(text, {
+      model: TTS_MODEL_NAME,
       voice: voiceName,
       languageCode
     });
