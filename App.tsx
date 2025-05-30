@@ -115,7 +115,7 @@ const App: React.FC = () => {
       <FeatureToggleBar activeFeature={activeFeature} onFeatureSelect={handleFeatureSelect} />
       
       <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-        {showApiKeyBanner && <ApiKeyStatusBanner className="animate-fadeInDown mb-6\" errorText={globalError} />}
+        {showApiKeyBanner && <ApiKeyStatusBanner className="animate-fadeInDown mb-6" errorText={globalError} />}
 
         {activeFeature === 'imageGenerator' && (
           <>
