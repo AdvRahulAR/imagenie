@@ -62,7 +62,7 @@ export const imageStyles = [
   { value: "Concept Art", label: "Concept Art" },
   { value: "Vintage Photo", label: "Vintage Photo" },
   { value: "Synthwave", label: "Synthwave" },
-  { value: "Steampunk", label: "Steampunk" },
+  { value: "Steampunk", label: "Steampunk" }
 ];
 
 interface GeneratedMediaData {
@@ -324,24 +324,24 @@ export const generateSpeech = async (
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: TTS_MODEL_NAME });
-    const result = await model.generateSpeech({
-      text,
-      voiceConfig: {
-        prebuiltVoiceConfig: {
-          voiceName: voiceName
-        }
-      },
-      languageCode: languageCode
-    });
+    // Get the text-to-speech model
+    const ttsModel = await genAI.getTextToSpeech();
     
-    if (!result) {
+    // Generate speech
+    const result = await ttsModel.generateSpeech({
+      text,
+      voice: voiceName,
+      languageCode
+    });
+
+    if (!result || !result.audioContent) {
       throw new Error("No audio data generated");
     }
 
-    // Convert the audio data to a URL that can be played
-    const blob = new Blob([result], { type: 'audio/wav' });
-    return URL.createObjectURL(blob);
+    // Convert the audio content to a Blob and create a URL
+    const audioBlob = new Blob([result.audioContent], { type: 'audio/wav' });
+    return URL.createObjectURL(audioBlob);
+
   } catch (error) {
     console.error('Error generating speech:', error);
     if (error instanceof Error) {
