@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
-import { generateSpeech } from '../services/geminiService';
+import { generateSpeech, voiceOptions, supportedLanguages } from '../services/geminiService';
 
 interface VoiceGeneratorProps {
   isApiKeyMissing: boolean;
@@ -8,6 +8,8 @@ interface VoiceGeneratorProps {
 
 export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing }) => {
   const [text, setText] = useState('');
+  const [selectedVoice, setSelectedVoice] = useState('Kore');
+  const [selectedLanguage, setSelectedLanguage] = useState('en-US');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -23,7 +25,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
     setAudioUrl(null);
 
     try {
-      const audioData = await generateSpeech(text);
+      const audioData = await generateSpeech(text, selectedVoice, selectedLanguage);
       if (audioData) {
         setAudioUrl(audioData);
       } else {
@@ -44,7 +46,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
           AI Voice Generator
         </h1>
         <p className="mt-3 text-lg text-slate-400">
-          Transform text into natural-sounding speech
+          Transform text into natural-sounding speech in multiple languages
         </p>
       </header>
 
@@ -63,6 +65,46 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
               onChange={(e) => setText(e.target.value)}
               disabled={isGenerating || isApiKeyMissing}
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="language-select" className="block text-sm font-medium text-slate-300 mb-1.5">
+                Select Language
+              </label>
+              <select
+                id="language-select"
+                className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-300 ease-in-out"
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                disabled={isGenerating || isApiKeyMissing}
+              >
+                {supportedLanguages.map(lang => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="voice-select" className="block text-sm font-medium text-slate-300 mb-1.5">
+                Select Voice
+              </label>
+              <select
+                id="voice-select"
+                className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-300 ease-in-out"
+                value={selectedVoice}
+                onChange={(e) => setSelectedVoice(e.target.value)}
+                disabled={isGenerating || isApiKeyMissing}
+              >
+                {voiceOptions.map(voice => (
+                  <option key={voice.value} value={voice.value}>
+                    {voice.label} - {voice.characteristic}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <button
