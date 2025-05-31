@@ -42,7 +42,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
   return (
     <div className="w-full animate-fadeInUp">
       <header className="text-center mb-10">
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-600 bg-200% animate-gradient-pan">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-red-600 bg-200% animate-gradient-pan">
           AI Voice Generator
         </h1>
         <p className="mt-3 text-lg text-slate-400">
@@ -50,7 +50,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
         </p>
       </header>
 
-      <main className="bg-slate-800 shadow-2xl shadow-pink-500/10 rounded-xl p-6 sm:p-10 transition-all duration-300 ease-in-out hover:shadow-pink-400/30">
+      <main className="bg-slate-800 shadow-2xl shadow-red-500/10 rounded-xl p-6 sm:p-10 transition-all duration-300 ease-in-out hover:shadow-red-400/30">
         <div className="space-y-8">
           <div>
             <label htmlFor="voice-input" className="block text-sm font-medium text-slate-300 mb-1.5">
@@ -59,7 +59,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
             <textarea
               id="voice-input"
               rows={6}
-              className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 placeholder-slate-500 rounded-md p-3 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-300 ease-in-out"
+              className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 placeholder-slate-500 rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 ease-in-out"
               placeholder="Enter your text here..."
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -74,7 +74,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
               </label>
               <select
                 id="language-select"
-                className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-300 ease-in-out"
+                className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 ease-in-out"
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
                 disabled={isGenerating || isApiKeyMissing}
@@ -93,7 +93,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
               </label>
               <select
                 id="voice-select"
-                className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-300 ease-in-out"
+                className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 ease-in-out"
                 value={selectedVoice}
                 onChange={(e) => setSelectedVoice(e.target.value)}
                 disabled={isGenerating || isApiKeyMissing}
@@ -110,7 +110,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
           <button
             onClick={handleGenerate}
             disabled={isGenerating || !text.trim() || isApiKeyMissing}
-            className="w-full group flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-md shadow-sm text-slate-900 bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-pink-400 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-all duration-300 ease-in-out"
+            className="w-full group flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-md shadow-sm text-slate-900 bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-red-400 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-all duration-300 ease-in-out"
           >
             {isGenerating ? (
               <>
@@ -133,7 +133,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ isApiKeyMissing 
 
           {audioUrl && !isGenerating && (
             <div className="mt-8 p-4 bg-slate-700 rounded-lg animate-fadeInUp">
-              <h2 className="text-lg font-semibold text-pink-400 mb-4">Generated Speech</h2>
+              <h2 className="text-lg font-semibold text-red-400 mb-4">Generated Speech</h2>
               <audio
                 controls
                 className="w-full"
