@@ -1,4 +1,5 @@
 import { GoogleGenAI, GenerateImagesResponse, GenerateContentResponse } from "@google/genai";
+import wav from 'wav';
 
 const API_KEY = process.env.API_KEY;
 
@@ -235,6 +236,30 @@ export const generateStructuredContent = async (
   }
 };
 
+async function saveWaveFile(
+  pcmData: Buffer,
+  channels = 1,
+  rate = 24000,
+  sampleWidth = 2,
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const writer = new wav.Writer({
+      channels,
+      sampleRate: rate,
+      bitDepth: sampleWidth * 8,
+    });
+
+    writer.on('data', (chunk) => {
+      resolve(new Blob([chunk], { type: 'audio/wav' }));
+    });
+
+    writer.on('error', reject);
+
+    writer.write(pcmData);
+    writer.end();
+  });
+}
+
 export const generateSpeech = async (
   text: string,
   voiceName: string = 'alloy',
@@ -245,18 +270,27 @@ export const generateSpeech = async (
   }
 
   try {
-    const model = ai.getModel(TTS_MODEL_NAME);
-    
-    const result = await model.generateSpeech(text, {
-      voice: voiceName,
-      languageCode
+    const response = await ai.models.generateContent({
+      model: TTS_MODEL_NAME,
+      contents: [{ parts: [{ text: text }] }],
+      config: {
+        responseModalities: ['AUDIO'],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName },
+          },
+          languageCode,
+        },
+      },
     });
 
-    if (!result || !result.audioContent) {
+    const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!data) {
       throw new Error("No audio data generated");
     }
 
-    const audioBlob = new Blob([result.audioContent], { type: 'audio/wav' });
+    const audioBuffer = Buffer.from(data, 'base64');
+    const audioBlob = await saveWaveFile(audioBuffer);
     return URL.createObjectURL(audioBlob);
 
   } catch (error) {
