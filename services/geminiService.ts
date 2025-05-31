@@ -148,7 +148,7 @@ Return only the rewritten prompt, without any preamble, explanation, or conversa
       }
     });
 
-    let optimizedPromptText = response.text.trim();
+    let optimizedPromptText = response.text?.trim() ?? '';
     
     const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
     const match = optimizedPromptText.match(fenceRegex);
@@ -258,7 +258,7 @@ export const generateStructuredContent = async (
         console.log("Grounding chunks from Google Search:", response.candidates[0].groundingMetadata.groundingChunks);
     }
 
-    let generatedText = response.text.trim();
+    let generatedText = response.text?.trim() ?? '';
     
     if (!generatedText) {
         throw new Error("The API returned empty content.");
