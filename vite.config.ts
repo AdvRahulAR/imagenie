@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
         }
       },
       optimizeDeps: {
-        include: ['@google/generative-ai']
+        include: ['@google/genai']
       }
     };
 });
