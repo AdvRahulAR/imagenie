@@ -1,5 +1,4 @@
 import { GoogleGenAI, GenerateImagesResponse, GenerateContentResponse } from "@google/genai";
-import wav from 'wav';
 
 const API_KEY = process.env.API_KEY;
 
@@ -236,28 +235,60 @@ export const generateStructuredContent = async (
   }
 };
 
+// Function to create a WAV file header
+function createWavHeader(
+  dataLength: number,
+  numChannels: number = 1,
+  sampleRate: number = 24000,
+  bitsPerSample: number = 16
+): Uint8Array {
+  const headerLength = 44;
+  const header = new Uint8Array(headerLength);
+  const view = new DataView(header.buffer);
+
+  // RIFF chunk descriptor
+  view.setUint32(0, 0x52494646, false); // "RIFF" in ASCII
+  view.setUint32(4, 36 + dataLength, true); // Total file size - 8
+  view.setUint32(8, 0x57415645, false); // "WAVE" in ASCII
+
+  // fmt sub-chunk
+  view.setUint32(12, 0x666D7420, false); // "fmt " in ASCII
+  view.setUint32(16, 16, true); // Length of format data
+  view.setUint16(20, 1, true); // Audio format (1 = PCM)
+  view.setUint16(22, numChannels, true); // Number of channels
+  view.setUint32(24, sampleRate, true); // Sample rate
+  view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true); // Byte rate
+  view.setUint16(32, numChannels * (bitsPerSample / 8), true); // Block align
+  view.setUint16(34, bitsPerSample, true); // Bits per sample
+
+  // data sub-chunk
+  view.setUint32(36, 0x64617461, false); // "data" in ASCII
+  view.setUint32(40, dataLength, true); // Data length
+
+  return header;
+}
+
+// Function to convert base64 to Uint8Array
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const length = binaryString.length;
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+// Updated saveWaveFile function for browser environment
 async function saveWaveFile(
-  pcmData: Buffer,
-  channels = 1,
-  rate = 24000,
-  sampleWidth = 2,
+  audioData: Uint8Array,
+  channels: number = 1,
+  sampleRate: number = 24000,
+  bitsPerSample: number = 16,
 ): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const writer = new wav.Writer({
-      channels,
-      sampleRate: rate,
-      bitDepth: sampleWidth * 8,
-    });
-
-    writer.on('data', (chunk) => {
-      resolve(new Blob([chunk], { type: 'audio/wav' }));
-    });
-
-    writer.on('error', reject);
-
-    writer.write(pcmData);
-    writer.end();
-  });
+  const header = createWavHeader(audioData.length, channels, sampleRate, bitsPerSample);
+  const wavFile = new Blob([header, audioData], { type: 'audio/wav' });
+  return wavFile;
 }
 
 export const generateSpeech = async (
@@ -289,8 +320,8 @@ export const generateSpeech = async (
       throw new Error("No audio data generated");
     }
 
-    const audioBuffer = Buffer.from(data, 'base64');
-    const audioBlob = await saveWaveFile(audioBuffer);
+    const audioData = base64ToUint8Array(data);
+    const audioBlob = await saveWaveFile(audioData);
     return URL.createObjectURL(audioBlob);
 
   } catch (error) {
