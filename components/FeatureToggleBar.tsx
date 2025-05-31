@@ -39,7 +39,7 @@ export const FeatureToggleBar: React.FC<FeatureToggleBarProps> = ({ activeFeatur
         <div className="flex items-center space-x-2 sm:space-x-3">
           <a href="/" className="flex items-center">
             <img 
-              src="/Logo1.png" 
+              src="/Logo1 copy.png" 
               alt="Imagenie Logo" 
               className="h-8 w-8 sm:h-10 sm:w-10 object-contain transition-transform duration-300 hover:scale-105"
             />
