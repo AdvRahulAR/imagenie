@@ -1,13 +1,13 @@
 import { GoogleGenAI, GenerateImagesResponse, GenerateContentResponse } from "@google/genai";
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = process.env.GEMINI_API_KEY;
 
 let ai: GoogleGenAI | null = null;
 
 if (API_KEY) {
   ai = new GoogleGenAI({ apiKey: API_KEY });
 } else {
-  console.warn("API_KEY environment variable not found. Gemini API calls will fail.");
+  console.warn("GEMINI_API_KEY environment variable not found. Gemini API calls will fail.");
 }
 
 const IMAGE_MODEL_NAME = 'imagen-3.0-generate-002';
