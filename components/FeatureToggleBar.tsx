@@ -10,7 +10,7 @@ interface FeatureToggleBarProps {
 const iconPaths = {
   imageIcon: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v10l3-3 2 2 4-4 5 5V6H4z",
   penIcon: "M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.379L3 13.757V17h3.243L14.62 8.621l-3.242-3.242z",
-  voiceIcon: "M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"
+  voiceIcon: "M10 7V3c0-1.1.9-2 2-2s2 .9 2 2v4c0 1.1-.9 2-2 2s-2-.9-2-2zm7 2v3c0 3.31-2.69 6-6 6s-6-2.69-6-6v-3H3v3c0 4.42 3.58 8 8 8 .71 0 1.41-.1 2.07-.29.29.29.68.45 1.09.45C15.17 20 16 19.17 16 18.14V17c1.84-.96 3-2.84 3-5v-3h-2z"
 };
 
 export const FeatureToggleBar: React.FC<FeatureToggleBarProps> = ({ activeFeature, onFeatureSelect }) => {
