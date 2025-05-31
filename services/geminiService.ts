@@ -12,7 +12,6 @@ if (API_KEY) {
 
 const TEXT_MODEL_NAME = 'gemini-2.5-flash-preview-04-17';
 const TTS_MODEL_NAME = 'gemini-2.5-flash-preview-tts';
-const IMAGEN_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/imagen-3.0-generate-002:generateImages';
 
 // Voice options with their characteristics
 export const voiceOptions = [
@@ -68,8 +67,8 @@ export const generateImageFromPrompt = async (
   optimize: boolean = false,
   style: string = ""
 ): Promise<GeneratedMediaData[] | null> => {
-  if (!API_KEY) {
-    throw new Error("API key is not configured. Is the API_KEY configured?");
+  if (!ai) {
+    throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
   }
 
   let finalPrompt = prompt.trim();
@@ -78,38 +77,19 @@ export const generateImageFromPrompt = async (
   }
 
   try {
-    const response = await fetch(`${IMAGEN_API_ENDPOINT}?key=${API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: {
-          text: finalPrompt
-        },
-        parameters: {
-          sampleCount: 4,
-          dimension: {
-            width: 1024,
-            height: 1024
-          }
-        }
-      })
+    const model = ai.getGenerativeModel({ model: "gemini-pro-vision" });
+    const result = await model.generateImages({
+      prompt: finalPrompt,
+      n: 4,
+      size: "1024x1024"
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'Failed to generate images');
-    }
-
-    const data = await response.json();
-    
-    if (!data.images || data.images.length === 0) {
+    if (!result.images || result.images.length === 0) {
       throw new Error("No images were generated");
     }
 
-    return data.images.map((image: { bytes: string }) => ({
-      url: `data:image/png;base64,${image.bytes}`,
+    return result.images.map(image => ({
+      url: image.url,
       mimeType: 'image/png'
     }));
   } catch (error) {
@@ -131,15 +111,7 @@ export const generateStructuredContent = async (
 
   try {
     const model = ai.getGenerativeModel({ model: TEXT_MODEL_NAME });
-    const result = await model.generateText({
-      text: userInput,
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 2048,
-      }
-    });
+    const result = await model.generateText(userInput);
 
     if (!result.text) {
       throw new Error("No content was generated");
@@ -149,7 +121,7 @@ export const generateStructuredContent = async (
   } catch (error) {
     console.error('Error generating content:', error);
     if (error instanceof Error) {
-      throw new Error(`Gemini API error: ${error.message}`);
+      throw new Error(`Content generation error: ${error.message}`);
     }
     throw new Error('An unknown error occurred while generating content.');
   }
@@ -166,8 +138,7 @@ export const generateSpeech = async (
 
   try {
     const model = ai.getGenerativeModel({ model: TTS_MODEL_NAME });
-    const result = await model.generateSpeech({
-      text,
+    const result = await model.generateSpeech(text, {
       voice: voiceName,
       languageCode
     });
