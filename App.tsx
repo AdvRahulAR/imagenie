@@ -35,7 +35,7 @@ const App: React.FC = () => {
   const [contentGenerationError, setContentGenerationError] = useState<string | null>(null);
 
   useEffect(() => {
-    const apiKey = (window as any).API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+    const apiKey = (window as any).API_KEY || process.env.API_KEY;
     if (!apiKey) {
       setShowApiKeyBanner(true);
       setGlobalError("API Key is not configured. Features requiring Gemini API (Image, Content & Voice Gen) will not work.");
