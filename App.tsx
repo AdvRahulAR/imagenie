@@ -234,31 +234,27 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Aspect Ratio Control */}
+                {/* Aspect Ratio Control - Reduced Size */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-3">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Aspect ratio
                   </label>
-                  <div className="grid grid-cols-5 gap-3">
+                  <div className="flex flex-wrap gap-2">
                     {aspectRatios.map((ratio) => (
                       <button
                         key={ratio.value}
                         type="button"
                         onClick={() => setSelectedAspectRatio(ratio.value)}
                         disabled={isGeneratingImages || showApiKeyBanner}
-                        className={`relative p-3 rounded-lg border-2 transition-all duration-300 ease-in-out ${
+                        className={`relative px-3 py-2 rounded-md border transition-all duration-200 ease-in-out ${
                           selectedAspectRatio === ratio.value
                             ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400'
                             : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-yellow-400 hover:text-yellow-400'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                         aria-label={`Select ${ratio.label} aspect ratio`}
                       >
-                        <div className="flex flex-col items-center space-y-1">
-                          <div className={`w-8 h-8 border-2 rounded ${
-                            selectedAspectRatio === ratio.value ? 'border-yellow-400' : 'border-slate-400'
-                          } ${getAspectRatioClass(ratio.value)} flex items-center justify-center text-xs`}>
-                            {ratio.icon}
-                          </div>
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-sm">{ratio.icon}</span>
                           <span className="text-xs font-medium">{ratio.label}</span>
                         </div>
                       </button>
