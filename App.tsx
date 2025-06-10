@@ -209,56 +209,59 @@ const App: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Number of Results Control */}
-                <div>
-                  <label htmlFor="num-images-slider" className="block text-sm font-medium text-slate-300 mb-3">
-                    Number of results
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      id="num-images-slider"
-                      type="range"
-                      min="1"
-                      max="4"
-                      value={numImages}
-                      onChange={(e) => setNumImages(parseInt(e.target.value))}
-                      disabled={isGeneratingImages || showApiKeyBanner}
-                      className="flex-1 h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider-thumb"
-                      style={{
-                        background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${((numImages - 1) / 3) * 100}%, #475569 ${((numImages - 1) / 3) * 100}%, #475569 100%)`
-                      }}
-                    />
-                    <div className="w-12 h-10 bg-slate-700 border border-slate-600 rounded-md flex items-center justify-center">
-                      <span className="text-sm font-medium text-slate-200">{numImages}</span>
+                {/* Parallel Controls: Number of Results and Aspect Ratio */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Number of Results Control */}
+                  <div>
+                    <label htmlFor="num-images-slider" className="block text-sm font-medium text-slate-300 mb-2">
+                      Number of results
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        id="num-images-slider"
+                        type="range"
+                        min="1"
+                        max="4"
+                        value={numImages}
+                        onChange={(e) => setNumImages(parseInt(e.target.value))}
+                        disabled={isGeneratingImages || showApiKeyBanner}
+                        className="flex-1 h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider-thumb"
+                        style={{
+                          background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${((numImages - 1) / 3) * 100}%, #475569 ${((numImages - 1) / 3) * 100}%, #475569 100%)`
+                        }}
+                      />
+                      <div className="w-10 h-8 bg-slate-700 border border-slate-600 rounded-md flex items-center justify-center">
+                        <span className="text-sm font-medium text-slate-200">{numImages}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Aspect Ratio Control - Reduced Size */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Aspect ratio
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {aspectRatios.map((ratio) => (
-                      <button
-                        key={ratio.value}
-                        type="button"
-                        onClick={() => setSelectedAspectRatio(ratio.value)}
-                        disabled={isGeneratingImages || showApiKeyBanner}
-                        className={`relative px-3 py-2 rounded-md border transition-all duration-200 ease-in-out ${
-                          selectedAspectRatio === ratio.value
-                            ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400'
-                            : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-yellow-400 hover:text-yellow-400'
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        aria-label={`Select ${ratio.label} aspect ratio`}
-                      >
-                        <div className="flex items-center space-x-1.5">
-                          <span className="text-sm">{ratio.icon}</span>
-                          <span className="text-xs font-medium">{ratio.label}</span>
-                        </div>
-                      </button>
-                    ))}
+                  {/* Aspect Ratio Control */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Aspect ratio
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {aspectRatios.map((ratio) => (
+                        <button
+                          key={ratio.value}
+                          type="button"
+                          onClick={() => setSelectedAspectRatio(ratio.value)}
+                          disabled={isGeneratingImages || showApiKeyBanner}
+                          className={`relative px-2 py-1.5 rounded-md border transition-all duration-200 ease-in-out ${
+                            selectedAspectRatio === ratio.value
+                              ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400'
+                              : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-yellow-400 hover:text-yellow-400'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                          aria-label={`Select ${ratio.label} aspect ratio`}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span className="text-xs">{ratio.icon}</span>
+                            <span className="text-xs font-medium">{ratio.label}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
