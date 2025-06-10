@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { generateImageFromPrompt, imageStyles, generateStructuredContent } from './services/geminiService';
-import { ImageCard } from './components/ImageCard';
-import { LoadingSpinner } from './components/LoadingSpinner';
-import { ApiKeyStatusBanner } from './components/ApiKeyStatusBanner';
-import { FeatureToggleBar, Feature } from './components/FeatureToggleBar';
-import { ContentCreatorAssistant } from './components/ContentCreatorAssistant';
-import { VoiceGenerator } from './components/VoiceGenerator';
+import { generateImageFromPrompt, imageStyles, generateStructuredContent } from '@/services/geminiService';
+import { ImageCard } from '@/components/ImageCard';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ApiKeyStatusBanner } from '@/components/ApiKeyStatusBanner';
+import { FeatureToggleBar, Feature } from '@/components/FeatureToggleBar';
+import { ContentCreatorAssistant } from '@/components/ContentCreatorAssistant';
+import { VoiceGenerator } from '@/components/VoiceGenerator';
 
 interface GeneratedImageData {
   src: string;
