@@ -120,16 +120,6 @@ const App: React.FC = () => {
     { value: '3:4', label: '3:4', icon: '📄' }
   ];
 
-  const getAspectRatioClass = (ratio: string): string => {
-    switch (ratio) {
-      case '1:1': return 'aspect-square';
-      case '9:16': return 'aspect-[9/16]';
-      case '16:9': return 'aspect-[16/9]';
-      case '4:3': return 'aspect-[4/3]';
-      case '3:4': return 'aspect-[3/4]';
-      default: return 'aspect-square';
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col items-center">
