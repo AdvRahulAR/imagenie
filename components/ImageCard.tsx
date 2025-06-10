@@ -1,14 +1,25 @@
-
 import React from 'react';
 
 interface ImageCardProps {
   src: string;
   alt: string; 
-  mimeType?: string; 
+  mimeType?: string;
+  aspectRatio?: string;
 }
 
-export const ImageCard: React.FC<ImageCardProps> = ({ src, alt, mimeType }) => {
-  const aspectRatioClass = 'aspect-square'; 
+export const ImageCard: React.FC<ImageCardProps> = ({ src, alt, mimeType, aspectRatio = '1:1' }) => {
+  const getAspectRatioClass = (ratio: string): string => {
+    switch (ratio) {
+      case '1:1': return 'aspect-square';
+      case '9:16': return 'aspect-[9/16]';
+      case '16:9': return 'aspect-[16/9]';
+      case '4:3': return 'aspect-[4/3]';
+      case '3:4': return 'aspect-[3/4]';
+      default: return 'aspect-square';
+    }
+  };
+
+  const aspectRatioClass = getAspectRatioClass(aspectRatio);
 
   const handleDownload = () => {
     const sanitizeFilename = (name: string): string => {
@@ -39,7 +50,7 @@ export const ImageCard: React.FC<ImageCardProps> = ({ src, alt, mimeType }) => {
       <img 
         src={src} 
         alt={alt} 
-        className="w-full h-full object-contain bg-slate-900" 
+        className="w-full h-full object-cover bg-slate-900" 
         loading="lazy"
         onError={(e) => {
           console.error('Image failed to load:', e);

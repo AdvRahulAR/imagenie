@@ -105,7 +105,11 @@ interface GeneratedMediaData {
 interface GenerateImageRequest {
   model: string;
   prompt: string;
-  config: { numberOfImages: number; outputMimeType: string; };
+  config: { 
+    numberOfImages: number; 
+    outputMimeType: string;
+    aspectRatio?: string;
+  };
 }
 
 const optimizeUserPrompt = async (userPrompt: string, style: string = ""): Promise<string> => {
@@ -172,7 +176,9 @@ Return only the rewritten prompt, without any preamble, explanation, or conversa
 export const generateImageFromPrompt = async (
   prompt: string,
   optimize: boolean = false,
-  style: string = ""
+  style: string = "",
+  numberOfImages: number = 4,
+  aspectRatio: string = "1:1"
 ): Promise<GeneratedMediaData[] | null> => {
   if (!ai) {
     throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
@@ -186,12 +192,19 @@ export const generateImageFromPrompt = async (
     finalPrompt = `${finalPrompt}, in a ${style} style`;
   }
 
-  console.log(`Generating 4 images with prompt: "${finalPrompt}"`);
+  console.log(`Generating ${numberOfImages} images with prompt: "${finalPrompt}" and aspect ratio: ${aspectRatio}`);
+
+  // Convert aspect ratio format for API
+  const apiAspectRatio = aspectRatio.replace(':', '_');
 
   const generationRequest: GenerateImageRequest = {
     model: IMAGE_MODEL_NAME,
     prompt: finalPrompt,
-    config: { numberOfImages: 4, outputMimeType: 'image/jpeg' },
+    config: { 
+      numberOfImages: numberOfImages, 
+      outputMimeType: 'image/jpeg',
+      aspectRatio: apiAspectRatio
+    },
   };
 
   try {
