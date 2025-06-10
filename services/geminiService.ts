@@ -97,6 +97,15 @@ export const imageStyles = [
   { value: "Steampunk", label: "Steampunk" }
 ];
 
+// Aspect ratio mapping for Gemini API
+const aspectRatioMapping: { [key: string]: string } = {
+  '1:1': 'SQUARE_1_1',
+  '9:16': 'PORTRAIT_9_16',
+  '16:9': 'LANDSCAPE_16_9',
+  '4:3': 'LANDSCAPE_4_3',
+  '3:4': 'PORTRAIT_3_4'
+};
+
 interface GeneratedMediaData {
   url: string;
   mimeType: string;
@@ -194,8 +203,8 @@ export const generateImageFromPrompt = async (
 
   console.log(`Generating ${numberOfImages} images with prompt: "${finalPrompt}" and aspect ratio: ${aspectRatio}`);
 
-  // Convert aspect ratio format for API
-  const apiAspectRatio = aspectRatio.replace(':', '_');
+  // Map aspect ratio to Gemini API format
+  const apiAspectRatio = aspectRatioMapping[aspectRatio] || aspectRatioMapping['1:1'];
 
   const generationRequest: GenerateImageRequest = {
     model: IMAGE_MODEL_NAME,
