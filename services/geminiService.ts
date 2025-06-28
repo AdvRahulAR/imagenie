@@ -292,7 +292,7 @@ export const generateImageFromPrompt = async (
       numberOfImages: numberOfImages, 
       outputMimeType: 'image/jpeg',
       aspectRatio: aspectRatio,
-      personGeneration: 'ALLOW_ADULT'
+      personGeneration: PersonGeneration.ALLOW_ALL
     },
   };
 
