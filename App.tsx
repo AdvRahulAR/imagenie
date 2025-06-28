@@ -180,140 +180,149 @@ const App: React.FC = () => {
                   </p>
                 </div>
                 
-                <div>
-                  <label htmlFor="model-select" className="block text-sm font-medium text-slate-300 mb-1.5">
-                    Select Image Model
-                  </label>
-                  <select
-                    id="model-select"
-                    name="model"
-                    className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300 ease-in-out"
-                    value={selectedImageModel}
-                    onChange={(e) => {
-                      setSelectedImageModel(e.target.value);
-                      // Clear selected image file when switching away from image-to-image model
-                      if (e.target.value !== 'gemini-2.0-flash-preview-image-generation') {
-                        setSelectedImageFile(null);
+                {/* Parallel Controls: Image Model, Upload Reference Image (conditional), and Image Style */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Image Model Selection */}
+                  <div>
+                    <label htmlFor="model-select" className="block text-sm font-medium text-slate-300 mb-1.5">
+                      Select Image Model
+                    </label>
+                    <select
+                      id="model-select"
+                      name="model"
+                      className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300 ease-in-out"
+                      value={selectedImageModel}
+                      onChange={(e) => {
+                        setSelectedImageModel(e.target.value);
+                        // Clear selected image file when switching away from image-to-image model
+                        if (e.target.value !== 'gemini-2.0-flash-preview-image-generation') {
+                          setSelectedImageFile(null);
+                        }
+                      }}
+                      disabled={isGeneratingImages || showApiKeyBanner}
+                      aria-label="Select image generation model"
+                    >
+                      {imageModels.map(model => (
+                        <option key={model.value} value={model.value}>
+                          {model.description}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {selectedImageModel === 'gemini-2.0-flash-preview-image-generation' 
+                        ? 'Upload a reference image to generate variations or modifications'
+                        : 'Imagen 4.0 offers enhanced quality and capabilities but is in preview'
                       }
-                    }}
-                    disabled={isGeneratingImages || showApiKeyBanner}
-                    aria-label="Select image generation model"
-                  >
-                    {imageModels.map(model => (
-                      <option key={model.value} value={model.value}>
-                        {model.label} - {model.description}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {selectedImageModel === 'gemini-2.0-flash-preview-image-generation' 
-                      ? 'Upload a reference image to generate variations or modifications'
-                      : 'Imagen 4.0 offers enhanced quality and capabilities but is in preview'
-                    }
-                  </p>
-                </div>
-
-                {/* Image Upload Section - Only show for image-to-image model */}
-                {selectedImageModel === 'gemini-2.0-flash-preview-image-generation' && (
-                  <div>
-                    <label htmlFor="image-upload" className="block text-sm font-medium text-slate-300 mb-1.5">
-                      Upload Reference Image
-                    </label>
-                    <div className="space-y-3">
-                      <input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] || null;
-                          setSelectedImageFile(file);
-                        }}
-                        disabled={isGeneratingImages || showApiKeyBanner}
-                        className="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-yellow-500 file:text-slate-900 hover:file:bg-yellow-600 file:transition-colors file:duration-300 bg-slate-700 border border-slate-600 rounded-md cursor-pointer focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                      />
-                      {selectedImageFile && (
-                        <div className="flex items-center justify-between p-3 bg-slate-700 border border-slate-600 rounded-md">
-                          <div className="flex items-center space-x-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-sm text-slate-300 truncate max-w-xs">
-                              {selectedImageFile.name}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              ({(selectedImageFile.size / 1024 / 1024).toFixed(2)} MB)
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedImageFile(null)}
-                            disabled={isGeneratingImages}
-                            className="text-red-400 hover:text-red-300 transition-colors duration-300 disabled:opacity-50"
-                            aria-label="Remove selected image"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                      <p className="text-xs text-slate-500">
-                        Supported formats: JPEG, PNG, WebP. Max size: 20MB. The AI will use this image as a reference to generate new variations.
-                      </p>
-                    </div>
+                    </p>
                   </div>
-                )}
 
-                <div>
-                  <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1.5">
-                    Select Image Style (Optional)
-                  </label>
-                  <select
-                    id="style-select"
-                    name="style"
-                    className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300 ease-in-out"
-                    value={selectedStyle}
-                    onChange={(e) => setSelectedStyle(e.target.value)}
-                    disabled={isGeneratingImages || showApiKeyBanner}
-                    aria-label="Select image style"
-                  >
-                    {imageStyles.map(style => (
-                      <option key={style.value} value={style.value}>
-                        {style.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Parallel Controls: Number of Results and Aspect Ratio */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Number of Results Control */}
-                  <div>
-                    <label htmlFor="num-images-slider" className="block text-sm font-medium text-slate-300 mb-2">
-                      Number of results
-                    </label>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        id="num-images-slider"
-                        type="range"
-                        min="1"
-                        max="4"
-                        value={numImages}
-                        onChange={(e) => setNumImages(parseInt(e.target.value))}
-                        disabled={isGeneratingImages || showApiKeyBanner}
-                        className="flex-1 h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider-thumb"
-                        style={{
-                          background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${((numImages - 1) / 3) * 100}%, #475569 ${((numImages - 1) / 3) * 100}%, #475569 100%)`
-                        }}
-                      />
-                      <div className="w-10 h-8 bg-slate-700 border border-slate-600 rounded-md flex items-center justify-center">
-                        <span className="text-sm font-medium text-slate-200">{numImages}</span>
+                  {/* Upload Reference Image - Only show for image-to-image model */}
+                  {selectedImageModel === 'gemini-2.0-flash-preview-image-generation' ? (
+                    <div>
+                      <label htmlFor="image-upload" className="block text-sm font-medium text-slate-300 mb-1.5">
+                        Upload Reference Image
+                      </label>
+                      <div className="space-y-3">
+                        <input
+                          id="image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            setSelectedImageFile(file);
+                          }}
+                          disabled={isGeneratingImages || showApiKeyBanner}
+                          className="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-yellow-500 file:text-slate-900 hover:file:bg-yellow-600 file:transition-colors file:duration-300 bg-slate-700 border border-slate-600 rounded-md cursor-pointer focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                        />
+                        {selectedImageFile && (
+                          <div className="flex items-center justify-between p-3 bg-slate-700 border border-slate-600 rounded-md">
+                            <div className="flex items-center space-x-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                              <span className="text-sm text-slate-300 truncate max-w-xs">
+                                {selectedImageFile.name}
+                              </span>
+                              <span className="text-xs text-slate-500">
+                                ({(selectedImageFile.size / 1024 / 1024).toFixed(2)} MB)
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedImageFile(null)}
+                              disabled={isGeneratingImages}
+                              className="text-red-400 hover:text-red-300 transition-colors duration-300 disabled:opacity-50"
+                              aria-label="Remove selected image"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-500">
+                          Supported formats: JPEG, PNG, WebP. Max size: 20MB. The AI will use this image as a reference to generate new variations.
+                        </p>
                       </div>
                     </div>
+                  ) : (
+                    <div></div> // Empty div to maintain grid layout when upload section is hidden
+                  )}
+
+                  {/* Image Style Selection */}
+                  <div>
+                    <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1.5">
+                      Select Image Style (Optional)
+                    </label>
+                    <select
+                      id="style-select"
+                      name="style"
+                      className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300 ease-in-out"
+                      value={selectedStyle}
+                      onChange={(e) => setSelectedStyle(e.target.value)}
+                      disabled={isGeneratingImages || showApiKeyBanner}
+                      aria-label="Select image style"
+                    >
+                      {imageStyles.map(style => (
+                        <option key={style.value} value={style.value}>
+                          {style.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                </div>
+
+                {/* Number of Results and Aspect Ratio Controls */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Number of Results Control - Only show for non-image-to-image models */}
+                  {selectedImageModel !== 'gemini-2.0-flash-preview-image-generation' && (
+                    <div>
+                      <label htmlFor="num-images-slider" className="block text-sm font-medium text-slate-300 mb-2">
+                        Number of results
+                      </label>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          id="num-images-slider"
+                          type="range"
+                          min="1"
+                          max="4"
+                          value={numImages}
+                          onChange={(e) => setNumImages(parseInt(e.target.value))}
+                          disabled={isGeneratingImages || showApiKeyBanner}
+                          className="flex-1 h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider-thumb"
+                          style={{
+                            background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${((numImages - 1) / 3) * 100}%, #475569 ${((numImages - 1) / 3) * 100}%, #475569 100%)`
+                          }}
+                        />
+                        <div className="w-10 h-8 bg-slate-700 border border-slate-600 rounded-md flex items-center justify-center">
+                          <span className="text-sm font-medium text-slate-200">{numImages}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Aspect Ratio Control */}
-                  <div>
+                  <div className={selectedImageModel === 'gemini-2.0-flash-preview-image-generation' ? 'md:col-span-2' : ''}>
                     <label className="block text-sm font-medium text-slate-300 mb-2">
                       Aspect ratio
                     </label>
@@ -336,7 +345,7 @@ const App: React.FC = () => {
                             <span className="text-xs font-medium">{ratio.label}</span>
                           </div>
                         </button>
-                      ))}
+                      )}
                     </div>
                   </div>
                 </div>
