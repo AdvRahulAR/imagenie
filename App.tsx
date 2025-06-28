@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { generateImageFromPrompt, imageStyles, generateStructuredContent } from './services/geminiService';
+import { generateImageFromPrompt, imageStyles, generateStructuredContent, imageModels } from './services/geminiService';
 import { ImageCard } from './components/ImageCard';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ApiKeyStatusBanner } from './components/ApiKeyStatusBanner';
@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
   const [optimizePrompt, setOptimizePrompt] = useState<boolean>(false);
   const [selectedStyle, setSelectedStyle] = useState<string>('');
+  const [selectedImageModel, setSelectedImageModel] = useState<string>(imageModels[0].value);
   const [numImages, setNumImages] = useState<number>(4);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<string>('1:1');
   const [generatedImages, setGeneratedImages] = useState<GeneratedImageData[] | null>(null);
@@ -57,7 +58,7 @@ const App: React.FC = () => {
     setGeneratedImages(null);
 
     try {
-      const imagesDataArray = await generateImageFromPrompt(prompt, optimizePrompt, selectedStyle, numImages, selectedAspectRatio);
+      const imagesDataArray = await generateImageFromPrompt(prompt, optimizePrompt, selectedStyle, numImages, selectedAspectRatio, selectedImageModel);
       if (imagesDataArray && imagesDataArray.length > 0) {
         setGeneratedImages(
           imagesDataArray.map((imageData, index) => ({
@@ -76,7 +77,7 @@ const App: React.FC = () => {
     } finally {
       setIsGeneratingImages(false);
     }
-  }, [prompt, optimizePrompt, selectedStyle, numImages, selectedAspectRatio]);
+  }, [prompt, optimizePrompt, selectedStyle, numImages, selectedAspectRatio, selectedImageModel]);
 
   const handleContentGeneration = useCallback(async (userInput: string, contentType: string) => {
     if (!userInput.trim()) {
@@ -178,6 +179,30 @@ const App: React.FC = () => {
                   </p>
                 </div>
                 
+                <div>
+                  <label htmlFor="model-select" className="block text-sm font-medium text-slate-300 mb-1.5">
+                    Select Image Model
+                  </label>
+                  <select
+                    id="model-select"
+                    name="model"
+                    className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300 ease-in-out"
+                    value={selectedImageModel}
+                    onChange={(e) => setSelectedImageModel(e.target.value)}
+                    disabled={isGeneratingImages || showApiKeyBanner}
+                    aria-label="Select image generation model"
+                  >
+                    {imageModels.map(model => (
+                      <option key={model.value} value={model.value}>
+                        {model.label} - {model.description}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Imagen 4.0 offers enhanced quality and capabilities but is in preview
+                  </p>
+                </div>
+
                 <div>
                   <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1.5">
                     Select Image Style (Optional)

@@ -10,9 +10,16 @@ if (API_KEY) {
   console.warn("API_KEY environment variable not found. Gemini API calls will fail.");
 }
 
-const IMAGE_MODEL_NAME = 'imagen-3.0-generate-002';
+const IMAGE_MODEL_NAME_V3 = 'imagen-3.0-generate-002';
+const IMAGE_MODEL_NAME_V4 = 'imagen-4.0-generate-preview-06-06';
 const TEXT_MODEL_NAME = 'gemini-2.5-flash-preview-04-17';
 const TTS_MODEL_NAME = 'gemini-2.5-flash-preview-tts';
+
+// Available image models for user selection
+export const imageModels = [
+  { value: IMAGE_MODEL_NAME_V3, label: 'Imagen 3.0 (Stable)', description: 'Reliable and well-tested model' },
+  { value: IMAGE_MODEL_NAME_V4, label: 'Imagen 4.0 (Preview)', description: 'Latest model with enhanced capabilities' }
+];
 
 // Voice options with their characteristics
 export const voiceOptions = [
@@ -178,7 +185,8 @@ export const generateImageFromPrompt = async (
   optimize: boolean = false,
   style: string = "",
   numberOfImages: number = 4,
-  aspectRatio: string = "1:1"
+  aspectRatio: string = "1:1",
+  modelName: string = IMAGE_MODEL_NAME_V3
 ): Promise<GeneratedMediaData[] | null> => {
   if (!ai) {
     throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
@@ -192,10 +200,10 @@ export const generateImageFromPrompt = async (
     finalPrompt = `${finalPrompt}, in a ${style} style`;
   }
 
-  console.log(`Generating ${numberOfImages} images with prompt: "${finalPrompt}" and aspect ratio: ${aspectRatio}`);
+  console.log(`Generating ${numberOfImages} images with model: ${modelName}, prompt: "${finalPrompt}" and aspect ratio: ${aspectRatio}`);
 
   const generationRequest: GenerateImageRequest = {
-    model: IMAGE_MODEL_NAME,
+    model: modelName,
     prompt: finalPrompt,
     config: { 
       numberOfImages: numberOfImages, 
