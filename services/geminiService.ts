@@ -248,7 +248,7 @@ export const generateImageFromPrompt = async (
       ];
 
       const config = {
-        responseModalities: ['IMAGE' as const],
+        responseModalities: ['TEXT' as const, 'IMAGE' as const],
       };
 
       const response = await ai.models.generateContent({
