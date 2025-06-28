@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateImagesResponse, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, GenerateImagesResponse, GenerateContentResponse, PersonGeneration } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
 
@@ -118,7 +118,7 @@ interface GenerateImageRequest {
     numberOfImages: number; 
     outputMimeType: string;
     aspectRatio?: string;
-    personGeneration?: string;
+    personGeneration?: PersonGeneration;
   };
 }
 
