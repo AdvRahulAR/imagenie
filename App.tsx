@@ -323,7 +323,7 @@ const App: React.FC = () => {
         )}
         
         <footer className="text-center mt-12 py-6 text-sm text-slate-500">
-          <p>Powered by Google Gemini & Imagen 3</p>
+          <p>Powered by Google Gemini & Imagen 4</p>
           <p>&copy; 2025 Imagenie by UB Intelligence. All rights reserved.</p>
         </footer>
       </div>
