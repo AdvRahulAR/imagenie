@@ -33,8 +33,8 @@ Imagenie is a cutting-edge web application that leverages the power of Google's 
 - **Frontend:** React 19, TypeScript
 - **AI Models & API:**
     - Google Gemini API (`@google/genai`)
-    - Image Generation Model: `imagen-4.0-fast-generate-preview-06-06`
-    - Text Generation & Prompt Optimization Model: `gemini-2.5-flash-lite-preview-06-17` (with Google Search grounding for content creation)
+    - Image Generation Model: `imagen-3.0-generate-002`
+    - Text Generation & Prompt Optimization Model: `gemini-2.5-flash-preview-04-17` (with Google Search grounding for content creation)
 - **Styling:** Tailwind CSS (configured directly in `index.html`)
 - **Modules:** ES Modules loaded via import maps (using esm.sh CDN)
 - **Offline Capability:** Basic offline support via a Service Worker (`sw.js`) for app shell caching.
@@ -114,12 +114,12 @@ If you are serving the files locally (e.g., using `npx serve`, VS Code Live Serv
 This file is central to the application's functionality, managing all interactions with the Google Gemini API.
 - **`generateImageFromPrompt(prompt, optimize, style)`:**
     - Takes a user prompt, an optimization flag, and an image style.
-    - If `optimize` is true, it first calls the Gemini text model (`gemini-2.5-flash-lite-preview-06-17`) to refine the user's prompt.
-    - Then, it calls the Imagen model (`imagen-4.0-fast-generate-preview-06-06`) to generate four images based on the final prompt.
+    - If `optimize` is true, it first calls the Gemini text model (`gemini-2.5-flash-preview-04-17`) to refine the user's prompt.
+    - Then, it calls the Imagen model (`imagen-3.0-generate-002`) to generate four images based on the final prompt.
     - Returns an array of image data (Base64 encoded URL and MIME type).
 - **`generateStructuredContent(userInput, contentType)`:**
     - Takes user input (text, topic) and the desired content type (e.g., 'linkedinPost', 'instagramCarousel').
-    - Constructs a detailed prompt for the Gemini text model (`gemini-2.5-flash-lite-preview-06-17`).
+    - Constructs a detailed prompt for the Gemini text model (`gemini-2.5-flash-preview-04-17`).
     - Enables `googleSearch` tool for grounding, allowing the model to fetch current information.
     - Returns the generated content as a Markdown string.
 
@@ -147,5 +147,5 @@ This project is currently not under a specific license. All rights reserved by U
 
 ---
 
-Powered by Google Gemini & Imagen 4
+Powered by Google Gemini & Imagen 3
 &copy; 2025 Imagenie by UB Intelligence
