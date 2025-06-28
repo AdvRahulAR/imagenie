@@ -345,7 +345,7 @@ const App: React.FC = () => {
                             <span className="text-xs font-medium">{ratio.label}</span>
                           </div>
                         </button>
-                      )}
+                      ))}
                     </div>
                   </div>
                 </div>
