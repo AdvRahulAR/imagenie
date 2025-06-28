@@ -10,7 +10,7 @@ if (API_KEY) {
   console.warn("API_KEY environment variable not found. Gemini API calls will fail.");
 }
 
-const IMAGE_MODEL_NAME = 'imagen-4.0-fast-generate-preview-06-06';
+const IMAGE_MODEL_NAME = 'imagen-3.0-generate-001';
 const TEXT_MODEL_NAME = 'gemini-2.5-flash-lite-preview-06-17';
 const TTS_MODEL_NAME = 'gemini-2.5-flash-preview-tts';
 
