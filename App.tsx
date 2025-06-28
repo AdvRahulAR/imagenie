@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [optimizePrompt, setOptimizePrompt] = useState<boolean>(false);
   const [selectedStyle, setSelectedStyle] = useState<string>('');
   const [selectedImageModel, setSelectedImageModel] = useState<string>(imageModels[0].value);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [numImages, setNumImages] = useState<number>(4);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<string>('1:1');
   const [generatedImages, setGeneratedImages] = useState<GeneratedImageData[] | null>(null);
@@ -58,7 +59,7 @@ const App: React.FC = () => {
     setGeneratedImages(null);
 
     try {
-      const imagesDataArray = await generateImageFromPrompt(prompt, optimizePrompt, selectedStyle, numImages, selectedAspectRatio, selectedImageModel);
+      const imagesDataArray = await generateImageFromPrompt(prompt, optimizePrompt, selectedStyle, numImages, selectedAspectRatio, selectedImageModel, selectedImageFile);
       if (imagesDataArray && imagesDataArray.length > 0) {
         setGeneratedImages(
           imagesDataArray.map((imageData, index) => ({
@@ -77,7 +78,7 @@ const App: React.FC = () => {
     } finally {
       setIsGeneratingImages(false);
     }
-  }, [prompt, optimizePrompt, selectedStyle, numImages, selectedAspectRatio, selectedImageModel]);
+  }, [prompt, optimizePrompt, selectedStyle, numImages, selectedAspectRatio, selectedImageModel, selectedImageFile]);
 
   const handleContentGeneration = useCallback(async (userInput: string, contentType: string) => {
     if (!userInput.trim()) {
@@ -188,7 +189,13 @@ const App: React.FC = () => {
                     name="model"
                     className="block w-full shadow-sm sm:text-sm bg-slate-700 border-slate-600 text-slate-200 rounded-md p-3 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300 ease-in-out"
                     value={selectedImageModel}
-                    onChange={(e) => setSelectedImageModel(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedImageModel(e.target.value);
+                      // Clear selected image file when switching away from image-to-image model
+                      if (e.target.value !== 'gemini-2.0-flash-preview-image-generation') {
+                        setSelectedImageFile(null);
+                      }
+                    }}
                     disabled={isGeneratingImages || showApiKeyBanner}
                     aria-label="Select image generation model"
                   >
@@ -199,9 +206,63 @@ const App: React.FC = () => {
                     ))}
                   </select>
                   <p className="mt-1 text-xs text-slate-500">
-                    Imagen 4.0 offers enhanced quality and capabilities but is in preview
+                    {selectedImageModel === 'gemini-2.0-flash-preview-image-generation' 
+                      ? 'Upload a reference image to generate variations or modifications'
+                      : 'Imagen 4.0 offers enhanced quality and capabilities but is in preview'
+                    }
                   </p>
                 </div>
+
+                {/* Image Upload Section - Only show for image-to-image model */}
+                {selectedImageModel === 'gemini-2.0-flash-preview-image-generation' && (
+                  <div>
+                    <label htmlFor="image-upload" className="block text-sm font-medium text-slate-300 mb-1.5">
+                      Upload Reference Image
+                    </label>
+                    <div className="space-y-3">
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setSelectedImageFile(file);
+                        }}
+                        disabled={isGeneratingImages || showApiKeyBanner}
+                        className="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-yellow-500 file:text-slate-900 hover:file:bg-yellow-600 file:transition-colors file:duration-300 bg-slate-700 border border-slate-600 rounded-md cursor-pointer focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                      />
+                      {selectedImageFile && (
+                        <div className="flex items-center justify-between p-3 bg-slate-700 border border-slate-600 rounded-md">
+                          <div className="flex items-center space-x-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm text-slate-300 truncate max-w-xs">
+                              {selectedImageFile.name}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              ({(selectedImageFile.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedImageFile(null)}
+                            disabled={isGeneratingImages}
+                            className="text-red-400 hover:text-red-300 transition-colors duration-300 disabled:opacity-50"
+                            aria-label="Remove selected image"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                      <p className="text-xs text-slate-500">
+                        Supported formats: JPEG, PNG, WebP. Max size: 20MB. The AI will use this image as a reference to generate new variations.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label htmlFor="style-select" className="block text-sm font-medium text-slate-300 mb-1.5">
@@ -283,17 +344,26 @@ const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleImageGeneration}
-                  disabled={isGeneratingImages || !prompt.trim() || showApiKeyBanner}
+                  disabled={
+                    isGeneratingImages || 
+                    !prompt.trim() || 
+                    showApiKeyBanner ||
+                    (selectedImageModel === 'gemini-2.0-flash-preview-image-generation' && !selectedImageFile)
+                  }
                   className="w-full group flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-md shadow-sm text-slate-900 bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-yellow-400 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-all duration-300 ease-in-out"
                   aria-live="polite"
                 >
                   {isGeneratingImages ? (
                     <>
                       <LoadingSpinner />
-                      <span className="animate-subtle-pulse">Generating {numImages} Image{numImages > 1 ? 's' : ''}...</span>
+                      <span className="animate-subtle-pulse">
+                        Generating {selectedImageModel === 'gemini-2.0-flash-preview-image-generation' ? 'Image-to-Image' : `${numImages} Image${numImages > 1 ? 's' : ''}`}...
+                      </span>
                     </>
                   ) : (
-                    <span className="transform transition-transform duration-300 group-hover:scale-105 group-focus:scale-105">✨ Generate {numImages} Image{numImages > 1 ? 's' : ''}</span>
+                    <span className="transform transition-transform duration-300 group-hover:scale-105 group-focus:scale-105">
+                      ✨ Generate {selectedImageModel === 'gemini-2.0-flash-preview-image-generation' ? 'Image-to-Image' : `${numImages} Image${numImages > 1 ? 's' : ''}`}
+                    </span>
                   )}
                 </button>
               </div>

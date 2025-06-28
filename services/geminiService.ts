@@ -12,13 +12,15 @@ if (API_KEY) {
 
 const IMAGE_MODEL_NAME_V3 = 'imagen-3.0-generate-002';
 const IMAGE_MODEL_NAME_V4 = 'imagen-4.0-generate-preview-06-06';
+const IMAGE_TO_IMAGE_MODEL_NAME = 'gemini-2.0-flash-preview-image-generation';
 const TEXT_MODEL_NAME = 'gemini-2.5-flash-preview-04-17';
 const TTS_MODEL_NAME = 'gemini-2.5-flash-preview-tts';
 
 // Available image models for user selection
 export const imageModels = [
   { value: IMAGE_MODEL_NAME_V3, label: 'Imagen 3.0 (Stable)', description: 'Reliable and well-tested model' },
-  { value: IMAGE_MODEL_NAME_V4, label: 'Imagen 4.0 (Preview)', description: 'Latest model with enhanced capabilities' }
+  { value: IMAGE_MODEL_NAME_V4, label: 'Imagen 4.0 (Preview)', description: 'Latest model with enhanced capabilities' },
+  { value: IMAGE_TO_IMAGE_MODEL_NAME, label: 'Gemini 2.0 Flash (Image-to-Image)', description: 'Generate images using reference image + text' }
 ];
 
 // Voice options with their characteristics
@@ -116,8 +118,27 @@ interface GenerateImageRequest {
     numberOfImages: number; 
     outputMimeType: string;
     aspectRatio?: string;
+    personGeneration?: string;
   };
 }
+
+// Helper function to convert File to base64
+const fileToBase64 = async (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      } else {
+        reject(new Error('Failed to convert file to base64'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Error reading file'));
+    reader.readAsDataURL(file);
+  });
+};
 
 const optimizeUserPrompt = async (userPrompt: string, style: string = ""): Promise<string> => {
   if (!ai) {
@@ -186,7 +207,8 @@ export const generateImageFromPrompt = async (
   style: string = "",
   numberOfImages: number = 4,
   aspectRatio: string = "1:1",
-  modelName: string = IMAGE_MODEL_NAME_V3
+  modelName: string = IMAGE_MODEL_NAME_V3,
+  imageFile: File | null = null
 ): Promise<GeneratedMediaData[] | null> => {
   if (!ai) {
     throw new Error("Gemini API client is not initialized. Is the API_KEY configured?");
@@ -200,7 +222,69 @@ export const generateImageFromPrompt = async (
     finalPrompt = `${finalPrompt}, in a ${style} style`;
   }
 
-  console.log(`Generating ${numberOfImages} images with model: ${modelName}, prompt: "${finalPrompt}" and aspect ratio: ${aspectRatio}`);
+  console.log(`Generating ${numberOfImages} images with model: ${modelName}, prompt: "${finalPrompt}", aspect ratio: ${aspectRatio}${imageFile ? ', with reference image' : ''}`);
+
+  // Handle image-to-image generation with Gemini 2.0 Flash
+  if (modelName === IMAGE_TO_IMAGE_MODEL_NAME && imageFile) {
+    try {
+      const base64Image = await fileToBase64(imageFile);
+      const mimeType = imageFile.type;
+
+      const contents = [
+        {
+          role: "user" as const,
+          parts: [
+            {
+              inlineData: {
+                mimeType: mimeType,
+                data: base64Image
+              }
+            },
+            {
+              text: finalPrompt
+            }
+          ]
+        }
+      ];
+
+      const config = {
+        responseModalities: ['IMAGE' as const],
+        responseMimeType: 'image/jpeg'
+      };
+
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: contents,
+        config: config
+      });
+
+      if (response.candidates && response.candidates[0]?.content?.parts) {
+        const imagesData: GeneratedMediaData[] = [];
+        
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            const base64ImageBytes = part.inlineData.data;
+            const responseMimeType = part.inlineData.mimeType || 'image/jpeg';
+            const imageUrl = `data:${responseMimeType};base64,${base64ImageBytes}`;
+            imagesData.push({ url: imageUrl, mimeType: responseMimeType });
+          }
+        }
+        
+        return imagesData.length > 0 ? imagesData : null;
+      }
+      
+      console.error("No image data found in image-to-image API response:", response);
+      return null;
+    } catch (error) {
+      console.error('Error generating image-to-image with Gemini API:', error);
+      if (error instanceof Error) {
+        throw new Error(`Gemini image-to-image API error: ${error.message}`);
+      }
+      throw new Error('An unknown error occurred while generating the image-to-image.');
+    }
+  }
+
+  // Handle regular image generation with Imagen models
 
   const generationRequest: GenerateImageRequest = {
     model: modelName,
@@ -208,7 +292,8 @@ export const generateImageFromPrompt = async (
     config: { 
       numberOfImages: numberOfImages, 
       outputMimeType: 'image/jpeg',
-      aspectRatio: aspectRatio  // Use the aspect ratio directly as string
+      aspectRatio: aspectRatio,
+      personGeneration: 'ALLOW_ADULT'
     },
   };
 
